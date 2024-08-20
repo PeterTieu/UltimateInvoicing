@@ -1,0 +1,651 @@
+<div class="backdrop"></div>
+<kendo-window
+  title="Quote #{{ enteredQuoteNumber }}"
+  [width]="windowWidth"
+  [height]="windowHeight"
+  [resizable]="true"
+  [draggable]="true"
+  (close)="onCancel()"
+  *ngIf="opened"
+  [top]="windowTop"
+  [left]="windowLeft"
+>
+  <div class="wrapper">
+    <form (ngSubmit)="onSubmit()" class="form-wrapper">
+      <kendo-tabstrip (tabSelect)="onTabSelect($event)">
+        <!-- "General Information" Tab -->
+        <kendo-tabstrip-tab title="General Information" [selected]="true">
+          <ng-template kendoTabContent>
+            <div class="content">
+              <!-- Outer wrapper with a border -->
+              <div class="outer-section">
+                <!-- Status Section -->
+                <div class="section">
+                  <label for="status">Status</label>
+                  <kendo-dropdownlist
+                    [data]="statusOptions"
+                    [(ngModel)]="selectedStatus"
+                    (valueChange)="onStatusChange($event)"
+                    name="status"
+                  ></kendo-dropdownlist>
+                </div>
+                <!-- "General" Section -->
+                <div class="section">
+                  <h3>General</h3>
+                  <p>
+                    <label for="description">Description</label>
+                    <input
+                      type="text"
+                      id="description"
+                      name="description"
+                      [(ngModel)]="enteredDescription"
+                    />
+                  </p>
+                  <p>
+                    <label for="department">Department</label>
+                    <kendo-dropdownlist
+                      [data]="departmentNames"
+                      [(ngModel)]="enteredDepartment"
+                      [filterable]="true"
+                      (filterChange)="handleDepartmentFilter($event)"
+                      name="department"
+                    ></kendo-dropdownlist>
+                  </p>
+                  <div class="two-column">
+                    <p>
+                      <label for="date-created">Date Created</label>
+                      <input
+                        type="date"
+                        id="date-created"
+                        name="date-created"
+                        [(ngModel)]="enteredDateCreated"
+                      />
+                    </p>
+                    <p>
+                      <label for="date-expiry">Date of Expiry</label>
+                      <input
+                        type="date"
+                        id="date-expiry"
+                        name="date-expiry"
+                        [(ngModel)]="enteredDateExpiry"
+                      />
+                    </p>
+                  </div>
+                </div>
+                <!-- "Customer" Section -->
+                <div class="section">
+                  <h3>Customer</h3>
+                  <div class="two-column">
+                    <p>
+                      <label for="customer">Bill to</label>
+                      <kendo-dropdownlist
+                        [data]="customerNames"
+                        [(ngModel)]="enteredCustomer"
+                        [filterable]="true"
+                        (valueChange)="onCustomerChange($event)"
+                        (filterChange)="handleFilter($event)"
+                        name="customer"
+                      ></kendo-dropdownlist>
+                    </p>
+                    <p *ngIf="selectedCustomerID">
+                      <label for="customerID">Customer ID</label>
+                      <span>{{ selectedCustomerID }}</span>
+                    </p>
+                  </div>
+                  <p>
+                    <label for="prepared-for">Prepared For</label>
+                    <input
+                      type="text"
+                      id="prepared-for"
+                      name="prepared-for"
+                      [(ngModel)]="enteredPreparedFor"
+                    />
+                  </p>
+                  <p>
+                    <label for="customer-phone">Phone</label>
+                    <input
+                      type="text"
+                      id="customer-phone"
+                      name="customer-phone"
+                      [(ngModel)]="enteredCustomerPhone"
+                    />
+                  </p>
+                  <p>
+                    <label for="customer-email">Email</label>
+                    <input
+                      type="text"
+                      id="customer-email"
+                      name="customer-email"
+                      [(ngModel)]="enteredCustomerEmail"
+                    />
+                  </p>
+                </div>
+              </div>
+            </div>
+          </ng-template>
+        </kendo-tabstrip-tab>
+
+        <!-- "Items/Services" Tab -->
+        <kendo-tabstrip-tab title="Items/Services">
+          <ng-template kendoTabContent>
+            <div class="content">
+              <div class="dropdown-container">
+                <label for="gst-option">GST:</label>
+                <kendo-dropdownlist
+                  id="gst-option"
+                  [data]="gstOptions"
+                  [(ngModel)]="selectedGstOption"
+                  [defaultItem]="gstOptions[0]"
+                  (valueChange)="onGstOptionChange($event)"
+                  [valuePrimitive]="true"
+                ></kendo-dropdownlist>
+              </div>
+              <div class="outer-section">
+                <!-- "Install Training / Travel Costs" Section -->
+                <div class="section">
+                  <h3>Install Training / Travel Costs</h3>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Product Type</th>
+                        <th>Description</th>
+                        <th>Qty</th>
+                        <th>Unit Price</th>
+                        <th>Total Price</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let item of tempInstallTrainingItems">
+                        <td>
+                          <kendo-dropdownlist
+                            [data]="productTypes"
+                            [(ngModel)]="item.productType"
+                            name="productType-{{ item.productCode }}"
+                            (valueChange)="onProductTypeChange(item, $event)"
+                          ></kendo-dropdownlist>
+                        </td>
+                        <td>
+                          <input
+                            type="text"
+                            [(ngModel)]="item.description"
+                            name="description-{{ item.productCode }}"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            [(ngModel)]="item.quantity"
+                            name="quantity-{{ item.productCode }}"
+                            min="0"
+                            (input)="updatePrices()"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            [(ngModel)]="item.unitPrice"
+                            name="unitPrice-{{ item.productCode }}"
+                            min="0"
+                            (input)="updatePrices()"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            [(ngModel)]="item.totalPrice"
+                            name="totalPrice-{{ item.productCode }}"
+                            readonly
+                          />
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            (click)="removeInstallTrainingItem(item)"
+                          >
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <kendo-dropdownlist
+                            [data]="productTypes"
+                            [(ngModel)]="newInstallTrainingItem.productType"
+                            name="newProductType"
+                            placeholder="Product Type"
+                          ></kendo-dropdownlist>
+                        </td>
+                        <td>
+                          <input
+                            type="text"
+                            [(ngModel)]="newInstallTrainingItem.description"
+                            name="newDescription"
+                            placeholder="Description"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            [(ngModel)]="newInstallTrainingItem.quantity"
+                            name="newQuantity"
+                            placeholder="Qty"
+                            min="0"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            [(ngModel)]="newInstallTrainingItem.unitPrice"
+                            name="newUnitPrice"
+                            placeholder="Unit Price"
+                            min="0"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            [(ngModel)]="newInstallTrainingItem.totalPrice"
+                            name="newTotalPrice"
+                            placeholder="Total Price"
+                            readonly
+                          />
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            (click)="addInstallTrainingItem()"
+                          >
+                            Add
+                          </button>
+                        </td>
+                      </tr>
+                      <tr *ngIf="installTrainingError">
+                        <td colspan="6" class="error-message">
+                          {{ installTrainingError }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="total-price">
+                    <strong>Total Price: </strong>
+                    <span>{{
+                      getTotalPrice(tempInstallTrainingItems) | currency
+                    }}</span>
+                  </div>
+                </div>
+                <!-- "Maintenance (Monthly Fees)" Section -->
+                <div class="section">
+                  <h3>Maintenance (Monthly Fees)</h3>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Product Type</th>
+                        <th>Description</th>
+                        <th>Qty</th>
+                        <th>Unit Price</th>
+                        <th>Total Price</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let item of tempMaintenanceItems">
+                        <td>
+                          <kendo-dropdownlist
+                            [data]="productTypes"
+                            [(ngModel)]="item.productType"
+                            name="productType-{{ item.productCode }}"
+                            (valueChange)="onProductTypeChange(item, $event)"
+                          ></kendo-dropdownlist>
+                        </td>
+                        <td>
+                          <input
+                            type="text"
+                            [(ngModel)]="item.description"
+                            name="description-{{ item.productCode }}"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            [(ngModel)]="item.quantity"
+                            name="quantity-{{ item.productCode }}"
+                            min="0"
+                            (input)="updatePrices()"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            [(ngModel)]="item.unitPrice"
+                            name="unitPrice-{{ item.productCode }}"
+                            min="0"
+                            (input)="updatePrices()"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            [(ngModel)]="item.totalPrice"
+                            name="totalPrice-{{ item.productCode }}"
+                            readonly
+                          />
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            (click)="removeMaintenanceItem(item)"
+                          >
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <kendo-dropdownlist
+                            [data]="productTypes"
+                            [(ngModel)]="newMaintenanceItem.productType"
+                            name="newProductType"
+                            placeholder="Product Type"
+                          ></kendo-dropdownlist>
+                        </td>
+                        <td>
+                          <input
+                            type="text"
+                            [(ngModel)]="newMaintenanceItem.description"
+                            name="newDescription"
+                            placeholder="Description"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            [(ngModel)]="newMaintenanceItem.quantity"
+                            name="newQuantity"
+                            placeholder="Qty"
+                            min="0"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            [(ngModel)]="newMaintenanceItem.unitPrice"
+                            name="newUnitPrice"
+                            placeholder="Unit Price"
+                            min="0"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            [(ngModel)]="newMaintenanceItem.totalPrice"
+                            name="newTotalPrice"
+                            placeholder="Total Price"
+                            readonly
+                          />
+                        </td>
+                        <td>
+                          <button type="button" (click)="addMaintenanceItem()">
+                            Add
+                          </button>
+                        </td>
+                      </tr>
+                      <tr *ngIf="maintenanceError">
+                        <td colspan="6" class="error-message">
+                          {{ maintenanceError }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="total-price">
+                    <strong>Total Price: </strong>
+                    <span>{{
+                      getTotalPrice(tempMaintenanceItems) | currency
+                    }}</span>
+                  </div>
+                </div>
+                <!-- "Additional Items" Section -->
+                <div class="section">
+                  <h3>Additional Items</h3>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Product Type</th>
+                        <th>Description</th>
+                        <th>Qty</th>
+                        <th>Unit Price</th>
+                        <th>Total Price</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let item of tempAdditionalItems">
+                        <td>
+                          <kendo-dropdownlist
+                            [data]="productTypes"
+                            [(ngModel)]="item.productType"
+                            name="productType-{{ item.productCode }}"
+                            (valueChange)="onProductTypeChange(item, $event)"
+                          ></kendo-dropdownlist>
+                        </td>
+                        <td>
+                          <input
+                            type="text"
+                            [(ngModel)]="item.description"
+                            name="description-{{ item.productCode }}"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            [(ngModel)]="item.quantity"
+                            name="quantity-{{ item.productCode }}"
+                            min="0"
+                            (input)="updatePrices()"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            [(ngModel)]="item.unitPrice"
+                            name="unitPrice-{{ item.productCode }}"
+                            min="0"
+                            (input)="updatePrices()"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            [(ngModel)]="item.totalPrice"
+                            name="totalPrice-{{ item.productCode }}"
+                            readonly
+                          />
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            (click)="removeAdditionalItem(item)"
+                          >
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <kendo-dropdownlist
+                            [data]="productTypes"
+                            [(ngModel)]="newAdditionalItem.productType"
+                            name="newProductType"
+                            placeholder="Product Type"
+                          ></kendo-dropdownlist>
+                        </td>
+                        <td>
+                          <input
+                            type="text"
+                            [(ngModel)]="newAdditionalItem.description"
+                            name="newDescription"
+                            placeholder="Description"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            [(ngModel)]="newAdditionalItem.quantity"
+                            name="newQuantity"
+                            placeholder="Qty"
+                            min="0"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            [(ngModel)]="newAdditionalItem.unitPrice"
+                            name="newUnitPrice"
+                            placeholder="Unit Price"
+                            min="0"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            [(ngModel)]="newAdditionalItem.totalPrice"
+                            name="newTotalPrice"
+                            placeholder="Total Price"
+                            readonly
+                          />
+                        </td>
+                        <td>
+                          <button type="button" (click)="addAdditionalItem()">
+                            Add
+                          </button>
+                        </td>
+                      </tr>
+                      <tr *ngIf="additionalError">
+                        <td colspan="6" class="error-message">
+                          {{ additionalError }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="total-price">
+                    <strong>Total Price: </strong>
+                    <span>{{
+                      getTotalPrice(tempAdditionalItems) | currency
+                    }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ng-template>
+        </kendo-tabstrip-tab>
+
+        <!-- "Notes" Tab -->
+        <kendo-tabstrip-tab title="Notes">
+          <ng-template kendoTabContent>
+            <div class="content">
+              <!-- Outer wrapper with a border -->
+              <div class="outer-section">
+                <!-- "Special Conditions" Section -->
+                <div class="section">
+                  <h3>Special Conditions</h3>
+                  <p>
+                    <label for="special-conditions">Visible on Quote</label>
+                    <kendo-editor
+                      id="special-conditions"
+                      [formControl]="enteredSpecialConditions"
+                      (valueChange)="onSpecialConditionsChange($event)"
+                    ></kendo-editor>
+                  </p>
+                </div>
+                <!-- "Notes" Section -->
+                <div class="section">
+                  <h3>Notes</h3>
+                  <p>
+                    <label for="notes">Hidden from customer</label>
+                    <kendo-editor
+                      id="notes"
+                      [formControl]="enteredNotes"
+                      (valueChange)="onNotesChange($event)"
+                    ></kendo-editor>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </ng-template>
+        </kendo-tabstrip-tab>
+
+        <!-- "Previews" Tab -->
+        <kendo-tabstrip-tab title="Previews">
+          <ng-template kendoTabContent>
+            <div class="content"></div>
+          </ng-template>
+        </kendo-tabstrip-tab>
+
+        <!-- "Invoicing" Tab -->
+        <kendo-tabstrip-tab title="Invoicing">
+          <ng-template kendoTabContent>
+            <div class="content">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Invoice Type</th>
+                    <th>Invoice Number</th>
+                    <th>Date Sent</th>
+                    <th>Date Due</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let invoice of invoices">
+                    <td>{{ invoice.invoiceType }}</td>
+                    <td>
+                      <input
+                        type="text"
+                        class="form-control"
+                        [(ngModel)]="invoice.invoiceNumber"
+                        (ngModelChange)="onInvoiceFieldChange()"
+                        name="invoiceNumber-{{ invoice.invoiceNumber }}"
+                        readonly
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="date"
+                        class="form-control"
+                        [(ngModel)]="invoice.dateSent"
+                        (ngModelChange)="onInvoiceFieldChange()"
+                        name="dateSent-{{ invoice.invoiceNumber }}"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="date"
+                        class="form-control"
+                        [(ngModel)]="invoice.dateDue"
+                        (ngModelChange)="onInvoiceFieldChange()"
+                        name="dateDue-{{ invoice.invoiceNumber }}"
+                      />
+                    </td>
+                    <td>
+                      <kendo-dropdownlist
+                        [data]="invoiceStatuses"
+                        [(ngModel)]="invoice.status"
+                        (ngModelChange)="onInvoiceFieldChange()"
+                        name="status-{{ invoice.invoiceNumber }}"
+                      ></kendo-dropdownlist>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </ng-template>
+        </kendo-tabstrip-tab>
+      </kendo-tabstrip>
+
+      <div class="actions">
+        <button type="button" kendoButton (click)="onCancel()">Cancel</button>
+        <button type="submit" kendoButton>Save</button>
+      </div>
+    </form>
+  </div>
+</kendo-window>

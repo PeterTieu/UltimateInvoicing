@@ -1,0 +1,322 @@
+<div class="backdrop"></div>
+<kendo-window
+  title="Bulk Transaction #{{ bulkTransactionNumber }}"
+  [width]="windowWidth"
+  [height]="windowHeight"
+  [resizable]="true"
+  [draggable]="true"
+  [top]="windowTop"
+  [left]="windowLeft"
+  (close)="onCancel()"
+>
+  <form (ngSubmit)="onSave()">
+    <div class="content">
+      <div class="outer-section">
+        <div class="section">
+          <h3>Bulk Transaction #{{ bulkTransactionNumber }}</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Transaction Number</th>
+                <th>Transaction Type</th>
+                <th>Customer</th>
+                <th>Product Code</th>
+                <th>Description</th>
+                <th>Quantity</th>
+                <th>Unit Price</th>
+                <th>Total Price</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let form of editableTransactionForms; let i = index">
+                <td>{{ form.get("transactionNumber")?.value }}</td>
+                <td>
+                  <kendo-dropdownlist
+                    [data]="transactionTypes"
+                    [formControl]="getFormControl(form, 'transactionType')"
+                    [valuePrimitive]="true"
+                  ></kendo-dropdownlist>
+                  <div
+                    *ngIf="
+                      form.get('transactionType')?.invalid &&
+                      (form.get('transactionType')?.dirty ||
+                        form.get('transactionType')?.touched)
+                    "
+                  >
+                    Transaction Type is required
+                  </div>
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    [formControl]="getFormControl(form, 'customer')"
+                  />
+                  <div
+                    *ngIf="
+                      form.get('customer')?.invalid &&
+                      (form.get('customer')?.dirty ||
+                        form.get('customer')?.touched)
+                    "
+                  >
+                    <div *ngIf="form.get('customer')?.errors?.['required']">
+                      Customer is required
+                    </div>
+                    <div *ngIf="form.get('customer')?.errors?.['minlength']">
+                      Customer min length is 2 characters
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    [formControl]="getFormControl(form, 'productCode')"
+                  />
+                  <div
+                    *ngIf="
+                      form.get('productCode')?.invalid &&
+                      (form.get('productCode')?.dirty ||
+                        form.get('productCode')?.touched)
+                    "
+                  >
+                    <div *ngIf="form.get('productCode')?.errors?.['required']">
+                      Product Code is required
+                    </div>
+                    <div *ngIf="form.get('productCode')?.errors?.['minlength']">
+                      Product Code min length is 3 characters
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    [formControl]="getFormControl(form, 'description')"
+                  />
+                  <div
+                    *ngIf="
+                      form.get('description')?.invalid &&
+                      (form.get('description')?.dirty ||
+                        form.get('description')?.touched)
+                    "
+                  >
+                    <div *ngIf="form.get('description')?.errors?.['required']">
+                      Description is required
+                    </div>
+                    <div *ngIf="form.get('description')?.errors?.['minlength']">
+                      Description min length is 3 characters
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    [formControl]="getFormControl(form, 'quantity')"
+                    min="0"
+                  />
+                  <div
+                    *ngIf="
+                      form.get('quantity')?.invalid &&
+                      (form.get('quantity')?.dirty ||
+                        form.get('quantity')?.touched)
+                    "
+                  >
+                    <div *ngIf="form.get('quantity')?.errors?.['required']">
+                      Quantity is required
+                    </div>
+                    <div *ngIf="form.get('quantity')?.errors?.['min']">
+                      Quantity cannot be zero or less
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    [formControl]="getFormControl(form, 'unitPriceInclGST')"
+                    min="0"
+                  />
+                  <div
+                    *ngIf="
+                      form.get('unitPriceInclGST')?.invalid &&
+                      (form.get('unitPriceInclGST')?.dirty ||
+                        form.get('unitPriceInclGST')?.touched)
+                    "
+                  >
+                    <div
+                      *ngIf="
+                        form.get('unitPriceInclGST')?.errors?.['required']
+                      "
+                    >
+                      Unit Price is required
+                    </div>
+                    <div *ngIf="form.get('unitPriceInclGST')?.errors?.['min']">
+                      Unit Price cannot be negative
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    [value]="calculateTotalPrice(transactions[i])"
+                    readonly
+                  />
+                </td>
+                <td>
+                  <kendo-dropdownlist
+                    [data]="transactionStatusOptions"
+                    [formControl]="getFormControl(form, 'status')"
+                    [valuePrimitive]="true"
+                  ></kendo-dropdownlist>
+                  <div
+                    *ngIf="
+                      form.get('status')?.invalid &&
+                      (form.get('status')?.dirty || form.get('status')?.touched)
+                    "
+                  >
+                    Status is required
+                  </div>
+                </td>
+                <td>
+                  <button type="button" (click)="removeTransactionItem(i)">
+                    Remove
+                  </button>
+                </td>
+              </tr>
+              <!-- If no transactions, display a row with empty values -->
+              <tr *ngIf="editableTransactionForms.length === 0">
+                <td colspan="10">No transactions available</td>
+              </tr>
+              <!-- New Transaction to be added -->
+              <tr [formGroup]="newTransactionForm">
+                <td>New</td>
+                <td>
+                  <kendo-dropdownlist
+                    [data]="transactionTypes"
+                    formControlName="transactionType"
+                    placeholder="Transaction Type"
+                  ></kendo-dropdownlist>
+                  <div
+                    *ngIf="newTransactionForm.get('transactionType')?.errors?.['required']"
+                  >
+                    Transaction Type is required
+                  </div>
+                </td>
+                <td>
+                  <input type="text" formControlName="customer" />
+                  <div
+                    *ngIf="newTransactionForm.get('customer')?.errors?.['required']"
+                  >
+                    Customer is required
+                  </div>
+                  <div
+                    *ngIf="newTransactionForm.get('customer')?.errors?.['minlength']"
+                  >
+                    Customer min length is 2 characters
+                  </div>
+                </td>
+                <td>
+                  <input type="text" formControlName="productCode" />
+                  <div
+                    *ngIf="newTransactionForm.get('productCode')?.errors?.['required']"
+                  >
+                    Product Code is required
+                  </div>
+                  <div
+                    *ngIf="newTransactionForm.get('productCode')?.errors?.['minlength']"
+                  >
+                    Product Code min length is 3 characters
+                  </div>
+                </td>
+                <td>
+                  <input type="text" formControlName="description" />
+                  <div
+                    *ngIf="newTransactionForm.get('description')?.errors?.['required']"
+                  >
+                    Description is required
+                  </div>
+                  <div
+                    *ngIf="newTransactionForm.get('description')?.errors?.['minlength']"
+                  >
+                    Description min length is 3 characters
+                  </div>
+                </td>
+                <td>
+                  <input type="number" formControlName="quantity" min="0" />
+                  <div
+                    *ngIf="newTransactionForm.get('quantity')?.errors?.['required']"
+                  >
+                    Quantity is required
+                  </div>
+                  <div
+                    *ngIf="newTransactionForm.get('quantity')?.errors?.['min']"
+                  >
+                    Quantity cannot be zero or less
+                  </div>
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    formControlName="unitPriceInclGST"
+                    min="0"
+                  />
+                  <div
+                    *ngIf="newTransactionForm.get('unitPriceInclGST')?.errors?.['required']"
+                  >
+                    Unit Price is required
+                  </div>
+                  <div
+                    *ngIf="newTransactionForm.get('unitPriceInclGST')?.errors?.['min']"
+                  >
+                    Unit Price cannot be negative
+                  </div>
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    [value]="
+                      newTransactionForm.get('quantity')?.value *
+                        newTransactionForm.get('unitPriceInclGST')?.value || 0
+                    "
+                    readonly
+                  />
+                </td>
+                <td>
+                  <kendo-dropdownlist
+                    [data]="transactionStatusOptions"
+                    formControlName="status"
+                    [valuePrimitive]="true"
+                  ></kendo-dropdownlist>
+                  <div
+                    *ngIf="
+                      newTransactionForm.get('status')?.invalid &&
+                      (newTransactionForm.get('status')?.dirty ||
+                        newTransactionForm.get('status')?.touched)
+                    "
+                  >
+                    Status is required
+                  </div>
+                </td>
+                <td>
+                  <button type="button" (click)="addTransactionItem()">
+                    Add
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div *ngIf="transactionError" class="error-message">
+            {{ transactionError }}
+          </div>
+        </div>
+      </div>
+      <div class="total-price">
+        <strong>Total Price: </strong>
+        <span>{{ calculateTotalPriceForAll() | currency }}</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button type="button" kendoButton (click)="onCancel()">Cancel</button>
+      <button type="submit" kendoButton>Save</button>
+    </div>
+  </form>
+</kendo-window>

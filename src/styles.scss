@@ -1,0 +1,14 @@
+/* You can add global styles to this file, and also import other style files */
+@import "@progress/kendo-theme-default/dist/all.scss";
+/* Importing Bootstrap SCSS file. */
+@import 'bootstrap/scss/bootstrap';
+
+input {
+    border: 1px solid #c1c1c1 !important;
+    padding: 2px !important;
+    border-radius: 4px !important;
+    font-size: 16px !important;
+    background-color: #f9f9f9 !important;
+    color: #333 !important;
+}
+

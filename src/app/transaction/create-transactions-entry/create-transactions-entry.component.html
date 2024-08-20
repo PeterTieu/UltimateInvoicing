@@ -1,0 +1,244 @@
+<div class="backdrop"></div>
+<kendo-window
+  title="Create Bulk Transactions"
+  [width]="windowWidth"
+  [height]="windowHeight"
+  [resizable]="true"
+  [draggable]="true"
+  (close)="onCancel()"
+  *ngIf="opened"
+  [top]="windowTop"
+  [left]="windowLeft"
+>
+  <div class="wrapper">
+    <form (ngSubmit)="onSubmit()" class="form-wrapper" [formGroup]="myForm">
+      <div class="content">
+        <!-- Section for File Upload -->
+        <div class="outer-section">
+          <div class="section">
+            <label for="file-upload">Upload Excel File</label>
+            <input
+              type="file"
+              id="file-upload"
+              accept=".xlsx, .xls"
+              (change)="onFileSelect($event)"
+              style="display: none"
+            />
+            <div
+              class="upload-drop-zone"
+              (drop)="onFileDrop($event)"
+              (dragover)="onDragOver($event)"
+              (dragleave)="onDragLeave($event)"
+              (click)="triggerFileInput()"
+            >
+              Drag and drop a file here or click to select a file
+            </div>
+          </div>
+        </div>
+
+        <!-- Section with Table -->
+        <div class="outer-section">
+          <div class="section">
+            <h3>Bulk Transaction #{{ bulkTransactionNumber }}</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Transaction Type</th>
+                  <th>Customer</th>
+                  <th>Product Code</th>
+                  <th>Description</th>
+                  <th>Quantity</th>
+                  <th>Unit Price</th>
+                  <th>Total Price</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Added Transaction(s) -->
+                <tr *ngFor="let item of transactionItems">
+                  <td>
+                    <kendo-dropdownlist
+                      [data]="transactionTypes"
+                      [(ngModel)]="item.transactionType"
+                      [ngModelOptions]="{ standalone: true }"
+                      name="transactionType-{{ item.productCode }}"
+                    ></kendo-dropdownlist>
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      [(ngModel)]="item.customer"
+                      [ngModelOptions]="{ standalone: true }"
+                      name="customer-{{ item.productCode }}"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      [(ngModel)]="item.productCode"
+                      [ngModelOptions]="{ standalone: true }"
+                      name="productCode-{{ item.productCode }}"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      [(ngModel)]="item.description"
+                      [ngModelOptions]="{ standalone: true }"
+                      name="description-{{ item.productCode }}"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="number"
+                      [(ngModel)]="item.quantity"
+                      [ngModelOptions]="{ standalone: true }"
+                      name="quantity-{{ item.productCode }}"
+                      min="0"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="number"
+                      [(ngModel)]="item.unitPrice"
+                      [ngModelOptions]="{ standalone: true }"
+                      name="unitPrice-{{ item.productCode }}"
+                      min="0"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="number"
+                      [(ngModel)]="item.totalPrice"
+                      [ngModelOptions]="{ standalone: true }"
+                      name="totalPrice-{{ item.productCode }}"
+                      readonly
+                    />
+                  </td>
+                  <td>
+                    <button type="button" (click)="removeTransactionItem(item)">
+                      Remove
+                    </button>
+                  </td>
+                </tr>
+
+                <!-- New Transaction to be added -->
+                <tr>
+                  <td>
+                    <kendo-dropdownlist
+                      [data]="transactionTypes"
+                      formControlName="transactionType"
+                      placeholder="Transaction Type"
+                    ></kendo-dropdownlist>
+                    <div
+                      *ngIf="myForm.get('transactionType')?.errors?.['required']"
+                    >
+                      Transaction Type is required
+                    </div>
+                  </td>
+                  <td>
+                    <input type="text" formControlName="customer" />
+                    <div *ngIf="myForm.get('customer')?.errors?.['required']">
+                      Customer is required
+                    </div>
+                    <div *ngIf="myForm.get('customer')?.errors?.['minlength']">
+                      Customer min length is 2 characters
+                    </div>
+                  </td>
+                  <td>
+                    <input type="text" formControlName="productCode" />
+                    <div
+                      *ngIf="myForm.get('productCode')?.errors?.['required']"
+                    >
+                      Product Code is required
+                    </div>
+                    <div
+                      *ngIf="myForm.get('productCode')?.errors?.['minlength']"
+                    >
+                      Product Code min length is 3 characters
+                    </div>
+                  </td>
+                  <td>
+                    <input type="text" formControlName="description" />
+                    <div
+                      *ngIf="myForm.get('description')?.errors?.['required']"
+                    >
+                      Description is required
+                    </div>
+                    <div
+                      *ngIf="myForm.get('description')?.errors?.['minlength']"
+                    >
+                      Description min length is 3 characters
+                    </div>
+                  </td>
+                  <td>
+                    <input type="number" formControlName="quantity" min="0" />
+                    <div *ngIf="myForm.get('quantity')?.errors?.['required']">
+                      Quantity is required
+                    </div>
+                    <div *ngIf="myForm.get('quantity')?.errors?.['min']">
+                      Quantity cannot be zero or less
+                    </div>
+                  </td>
+                  <td>
+                    <input type="number" formControlName="unitPrice" min="0" />
+                    <div *ngIf="myForm.get('unitPrice')?.errors?.['required']">
+                      Unit Price is required
+                    </div>
+                    <div *ngIf="myForm.get('unitPrice')?.errors?.['min']">
+                      Unit Price cannot be negative
+                    </div>
+                  </td>
+                  <td>
+                    <input
+                      type="number"
+                      [(ngModel)]="newTransactionItem.totalPrice"
+                      name="newTotalPrice"
+                      [ngModelOptions]="{ standalone: true }"
+                      placeholder="Total Price"
+                      readonly
+                    />
+                  </td>
+                  <td>
+                    <button type="button" (click)="addTransactionItem()">
+                      Add
+                    </button>
+                  </td>
+                </tr>
+                <tr *ngIf="transactionError">
+                  <td colspan="9" class="error-message">
+                    {{ transactionError }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="total-price">
+              <strong>Total Price: </strong>
+              <span>{{ getTotalPrice(transactionItems) | currency }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" kendoButton (click)="onCancel()">Cancel</button>
+        <button
+          type="button"
+          kendoButton
+          class="save-draft"
+          (click)="onSaveDraft()"
+        >
+          Save Draft
+        </button>
+        <button
+          type="button"
+          kendoButton
+          class="request-invoice"
+          (click)="onRequestInvoice()"
+        >
+          Request Invoice
+        </button>
+      </div>
+    </form>
+  </div>
+</kendo-window>

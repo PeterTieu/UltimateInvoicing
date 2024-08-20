@@ -1,0 +1,92 @@
+<div kendoWindowContainer></div>
+<div *ngIf="isViewingQuote" class="k-overlay"></div>
+<div id="quote-list" *ngIf="selectedItem === 'Quotes List'"></div>
+<div id="quote-list">
+  <div class="filter-container">
+    <div class="filter-elements">
+      <div class="status-container">
+        <label for="status-dropdown">Status: </label>
+        <kendo-dropdownlist
+          [data]="quoteStatusOptions"
+          textField="text"
+          valueField="value"
+          id="status-dropdown"
+          placeholder="Select status"
+          (valueChange)="onStatusChange($event)"
+        ></kendo-dropdownlist>
+      </div>
+      <div class="search-container">
+        <label for="search-input">Search: </label>
+        <input
+          type="search"
+          id="search-input"
+          placeholder="Type keywords..."
+          [(ngModel)]="quoteFilter.searchTerm"
+          (input)="onSearchTermChange()"
+        />
+      </div>
+      <div class="sort-by-container">
+        <label for="sort-by-dropdown">Sort by: </label>
+        <kendo-dropdownlist
+          [data]="sortByOptions"
+          textField="text"
+          valueField="value"
+          id="sort-by-dropdown"
+          placeholder="Select sort option"
+          (valueChange)="onSortByChange($event)"
+        ></kendo-dropdownlist>
+      </div>
+    </div>
+    <button class="create-quote-button" (click)="onCreateQuote()">
+      Create Quote
+    </button>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Quote Number</th>
+        <th>Customer</th>
+        <th>Date Created</th>
+        <th>Description</th>
+        <th>Prepared By</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <ul id="quotes">
+    <li *ngFor="let quote of displayedQuotes; trackBy: trackByQuoteNumber">
+      <button
+        [class.active]="quote.quoteNumber === selectedQuoteNumber"
+        (click)="onSelectQuote(quote.quoteNumber)"
+      >
+        <div class="quote-container">
+          <p>{{ quote.quoteNumber }}</p>
+          <p>
+            {{ quote.customer }}
+            <br />
+            <span class="customer-id">({{ quote.customerID }})</span>
+          </p>
+          <p>{{ quote.dateCreated }}</p>
+          <p>{{ quote.description }}</p>
+          <p>{{ quote.preparedBy }}</p>
+          <p>{{ quote.status }}</p>
+        </div>
+      </button>
+    </li>
+  </ul>
+
+  <button
+    *ngIf="displayedQuotes.length < filteredQuotes.length"
+    (click)="loadMoreQuotes()"
+    class="load-more-button"
+  >
+    Load More Quotes
+  </button>
+
+  <app-quote-entry
+    *ngIf="isViewingQuote"
+    [quoteNumber]="selectedQuoteNumber"
+    (close)="onCloseQuoteEntryPoint()"
+  ></app-quote-entry>
+</div>

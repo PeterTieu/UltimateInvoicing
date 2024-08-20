@@ -1,0 +1,22 @@
+<div class="custom-toolbar">
+  <button
+    kendoButton
+    [svgIcon]="menuSvg"
+    fillMode="flat"
+    (click)="drawer.toggle()"
+  ></button>
+  <span class="top-banner">Ultimate Invoicing</span>
+</div>
+<kendo-drawer-container>
+  <kendo-drawer
+    #drawer
+    [items]="items"
+    mode="push"
+    [mini]="true"
+    [expanded]="true"
+    (select)="onSelect($event)"
+  >
+  </kendo-drawer>
+
+  <router-outlet></router-outlet>
+</kendo-drawer-container>

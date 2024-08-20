@@ -1,0 +1,283 @@
+.backdrop {
+  background-color: rgba(0, 0, 0, 0.7);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+}
+
+.content {
+  height: 700px;
+}
+
+h2 {
+  margin: 0;
+  color: #000000;
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  font-size: 0.85rem;
+  color: #000000;
+}
+
+input,
+textarea {
+  width: 100%;
+  font: inherit;
+  padding: 0.15rem 0.25rem;
+  border-radius: 4px;
+  border: 1px solid #ffffff;
+  background-color: #cacaca;
+}
+
+.outer-section {
+  border: 2px solid #bbb;
+  padding: 1rem;
+  border-radius: 4px;
+}
+
+.section {
+  border: 1px solid #ccc;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 4px;
+}
+
+.section h3 {
+  margin-top: 0;
+  color: red
+}
+
+.form-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: space-between;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.25rem;
+  padding: 1rem;
+  background-color: #f9f9f9;
+  border-top: 1px solid #ddd;
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border: none;
+  padding: 0.35rem 1.25rem;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+button[type="button"] {
+  color: #000000;
+}
+
+button[type="button"]:hover,
+button[type="button"]:active {
+  color: #d0c2e1;
+}
+
+button[type="submit"] {
+  background-color: #9c73ca;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+button[type="submit"]:hover,
+button[type="submit"]:active {
+  background-color: #cabcdf;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
+}
+
+.save-draft {
+  background-color: orange;
+}
+
+.save-draft:hover,
+.save-draft:active {
+  background-color: darkorange;
+}
+
+.request-invoice {
+  background-color: #9c73ca;
+}
+
+.request-invoice:hover,
+.request-invoice:active {
+  background-color: darkviolet;
+}
+
+@media (min-width: 768px) {
+  dialog {
+    padding: 2rem;
+  }
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+th,
+td {
+  border: 1px solid #ccc;
+  padding: 0.5rem;
+  text-align: left;
+}
+
+th {
+  background-color: #f2f2f2;
+}
+
+.error-message {
+  color: red;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.total-price {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.total-price label {
+  font-weight: bold;
+  margin-right: 0.5rem;
+}
+
+.dropdown-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.dropdown-container label {
+  margin-right: 0.5rem;
+}
+
+.upload-drop-zone {
+  border: 2px dashed #bbb;
+  border-radius: 4px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.upload-drop-zone.dragover {
+  background-color: #f0f0f0;
+}
+
+.filter-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1rem;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 1000;
+  padding: 20px 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.filter-elements {
+  justify-content: right;
+  display: flex;
+  gap: 1rem;
+  flex-grow: 1;
+}
+
+.type-container,
+.search-container,
+.sort-by-container {
+  display: flex;
+  align-items: center;
+  margin-right: 1rem;
+}
+
+.create-transaction-button {
+  background-color: #4caf50;
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  width: 20%;
+}
+
+#type-dropdown {
+  margin-left: 8px;
+  width: 100px;
+}
+
+#sort-by-dropdown {
+  margin-left: 8px;
+  width: 250px;
+}
+
+.status-container {
+  display: flex;
+  align-items: center;
+  margin-right: 1rem;
+}
+
+#status-dropdown {
+  margin-left: 8px;
+  width: 150px;
+}
+
+#search-input {
+  padding: 10px;
+  font-size: 16px;
+  margin-left: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 400px;
+}
+
+.bulk-transactions-controllers-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1rem;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 1000;
+  padding: 20px 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.expand-toggle {
+  display: flex;
+  align-items: center;
+  margin-top: 1rem;
+  gap: 0.5rem;
+}

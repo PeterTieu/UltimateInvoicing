@@ -1,0 +1,294 @@
+<div kendoWindowContainer></div>
+<div
+  *ngIf="isViewingTransaction || isViewingBulkTransaction"
+  class="k-overlay"
+></div>
+<div id="transaction-list" *ngIf="selectedItem === 'Transaction List'"></div>
+<div id="transaction-list">
+  <div class="filter-container">
+    <div class="filter-elements">
+      <div class="type-container">
+        <label for="type-dropdown">Transaction Type: </label>
+        <kendo-dropdownlist
+          [data]="transactionTypeOptions"
+          textField="text"
+          valueField="value"
+          id="type-dropdown"
+          placeholder="Select type"
+          (valueChange)="onTypeChange($event)"
+        ></kendo-dropdownlist>
+      </div>
+      <div class="status-container">
+        <label for="status-dropdown">Status: </label>
+        <kendo-dropdownlist
+          [data]="transactionStatusOptions"
+          textField="text"
+          valueField="value"
+          id="status-dropdown"
+          placeholder="Select status"
+          (valueChange)="onStatusChange($event)"
+        ></kendo-dropdownlist>
+      </div>
+      <div class="gst-container">
+        <label for="gst-dropdown">GST: </label>
+        <kendo-dropdownlist
+          [data]="gstOptions"
+          textField="text"
+          valueField="value"
+          id="gst-dropdown"
+          placeholder="Select GST option"
+          (valueChange)="onGstOptionChange($event)"
+        ></kendo-dropdownlist>
+      </div>
+      <div class="search-container">
+        <label for="search-input">Search: </label>
+        <input
+          type="search"
+          id="search-input"
+          placeholder="Type keywords..."
+          [(ngModel)]="transactionFilter.searchTerm"
+          (input)="onSearchTermChange()"
+        />
+      </div>
+      <div class="sort-by-container">
+        <label for="sort-by-dropdown">Sort by: </label>
+        <kendo-dropdownlist
+          [data]="sortByOptions"
+          textField="text"
+          valueField="value"
+          id="sort-by-dropdown"
+          placeholder="Select sort option"
+          (valueChange)="onSortByChange($event)"
+        ></kendo-dropdownlist>
+      </div>
+    </div>
+    <button class="create-transaction-button" (click)="openWindow()">
+      Create Bulk Transactions
+    </button>
+  </div>
+  <div class="bulk-transactions-controllers-container">
+    <div class="bulk-transaction-controllers-elements">
+      <div class="show-toggle">
+        <label for="show-switch">Group by Bulk Transactions</label>
+        <kendo-switch
+          [(ngModel)]="groupByBulkTransactionsList"
+          id="show-switch"
+          (valueChange)="toggleShowBulkTransactions($event)"
+        ></kendo-switch>
+      </div>
+      <div class="expand-toggle">
+        <label for="expand-switch">Expand all Bulk Transactions</label>
+        <kendo-switch
+          [(ngModel)]="expandAll"
+          id="expand-switch"
+          (valueChange)="toggleExpandAll($event)"
+          [disabled]="!groupByBulkTransactionsList"
+        ></kendo-switch>
+      </div>
+      <div class="search-container">
+        <label for="bulk-search-input">Search Bulk Transaction Number: </label>
+        <input
+          type="search"
+          id="bulk-search-input"
+          placeholder="Type bulk transaction number..."
+          [(ngModel)]="bulkTransactionNumberSearchTerm"
+          (input)="onBulkTransactionSearchTermChange($event)"
+        />
+      </div>
+    </div>
+  </div>
+
+  <ng-container *ngIf="groupByBulkTransactionsList; else transactionsOnlyList">
+    <table>
+      <thead>
+        <tr>
+          <th>Transaction Number</th>
+          <th>Transaction Type</th>
+          <th>Customer</th>
+          <th>Product Code</th>
+          <th>Description</th>
+          <th>Quantity</th>
+          <th>
+            {{
+              transactionFilter.selectedGstOption === "included"
+                ? "Unit Price (incl. GST)"
+                : "Unit Price (excl. GST)"
+            }}
+          </th>
+          <th>
+            {{
+              transactionFilter.selectedGstOption === "included"
+                ? "Total Price (incl. GST)"
+                : "Total Price (excl. GST)"
+            }}
+          </th>
+          <th>Date Created</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <kendo-panelbar>
+      <kendo-panelbar-item
+        *ngFor="let bulkTransactionNumber of displayedBulkTransactions"
+        [expanded]="expandAll"
+      >
+        <ng-template kendoPanelBarItemTitle>
+          <span
+            id="bulk-transaction-number-span"
+            (click)="onSelectBulkTransaction(bulkTransactionNumber, $event)"
+            >Bulk Transaction #{{ bulkTransactionNumber }}</span
+          >
+        </ng-template>
+        <ng-template kendoPanelBarContent>
+          <ul id="transactions">
+            <li
+              *ngFor="
+                let transaction of groupedTransactions[bulkTransactionNumber];
+                trackBy: trackByTransactionNumber
+              "
+            >
+              <button
+                [class.active]="
+                  transaction.transactionNumber ===
+                  selectedTransaction?.transactionNumber
+                "
+                (click)="onSelectTransaction(transaction)"
+              >
+                <div class="group-by-bulk-transactions-list-container">
+                  <p>{{ transaction.transactionNumber }}</p>
+                  <p>{{ transaction.transactionType }}</p>
+                  <p>{{ transaction.customer }}</p>
+                  <p>{{ transaction.productCode }}</p>
+                  <p>{{ transaction.description }}</p>
+                  <p>{{ transaction.quantity }}</p>
+                  <p>{{ getUnitPrice(transaction) | currency }}</p>
+                  <p>{{ calculateTotalPrice(transaction) | currency }}</p>
+                  <p>{{ transaction.dateCreated }}</p>
+                  <p>{{ transaction.status }}</p>
+                </div>
+              </button>
+            </li>
+          </ul>
+        </ng-template>
+      </kendo-panelbar-item>
+    </kendo-panelbar>
+
+    <button
+      *ngIf="
+        displayedBulkTransactions.length < getBulkTransactionNumbers().length
+      "
+      (click)="loadMoreBulkTransactions()"
+      class="load-more-button"
+    >
+      Load More Bulk Transactions
+    </button>
+  </ng-container>
+
+  <ng-template #transactionsOnlyList>
+    <table>
+      <thead>
+        <tr>
+          <th>Bulk Transaction Number</th>
+          <th>Transaction Number</th>
+          <th>Transaction Type</th>
+          <th>Customer</th>
+          <th>Product Code</th>
+          <th>Description</th>
+          <th>Quantity</th>
+          <th>
+            {{
+              transactionFilter.selectedGstOption === "included"
+                ? "Unit Price (incl. GST)"
+                : "Unit Price (excl. GST)"
+            }}
+          </th>
+          <th>
+            {{
+              transactionFilter.selectedGstOption === "included"
+                ? "Total Price (incl. GST)"
+                : "Total Price (excl. GST)"
+            }}
+          </th>
+          <th>Date Created</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <ul id="transactions">
+      <li
+        *ngFor="
+          let transaction of displayedTransactions;
+          trackBy: trackByTransactionNumber
+        "
+      >
+        <button
+          [class.active]="
+            transaction.transactionNumber ===
+            selectedTransaction?.transactionNumber
+          "
+          (click)="onSelectTransaction(transaction)"
+        >
+          <div class="transactions-only-list-container">
+            <button
+              id="bulk-transaction-number-button"
+              (click)="
+                onSelectBulkTransaction(
+                  transaction.bulkTransactionNumber,
+                  $event
+                )
+              "
+            >
+              {{ transaction.bulkTransactionNumber }}
+            </button>
+            <p>{{ transaction.transactionNumber }}</p>
+            <p>{{ transaction.transactionType }}</p>
+            <p>{{ transaction.customer }}</p>
+            <p>{{ transaction.productCode }}</p>
+            <p>{{ transaction.description }}</p>
+            <p>{{ transaction.quantity }}</p>
+            <p>{{ getUnitPrice(transaction) | currency }}</p>
+            <p>{{ calculateTotalPrice(transaction) | currency }}</p>
+            <p>{{ transaction.dateCreated }}</p>
+            <p>{{ transaction.status }}</p>
+          </div>
+        </button>
+      </li>
+    </ul>
+
+    <button
+      *ngIf="displayedTransactions.length < filteredTransactions.length"
+      (click)="loadMoreTransactions()"
+      class="load-more-button"
+    >
+      Load More Transactions
+    </button>
+  </ng-template>
+
+  <app-create-transactions-entry
+    *ngIf="windowOpened && !isViewingTransaction && !isViewingBulkTransaction"
+    (closeWindow)="closeWindow()"
+  ></app-create-transactions-entry>
+
+  <app-transaction-entry
+    *ngIf="windowOpened && isViewingTransaction"
+    [transaction]="selectedTransaction"
+    (close)="closeWindow()"
+    (save)="onSaveTransaction($event)"
+    (openBulkTransaction)="onOpenBulkTransaction($event)"
+  ></app-transaction-entry>
+
+  <app-bulk-transaction-entry
+    *ngIf="
+      windowOpened &&
+      isViewingBulkTransaction &&
+      selectedBulkTransactionNumber !== null
+    "
+    [bulkTransactionNumber]="selectedBulkTransactionNumber"
+    [transactions]="groupedTransactions[selectedBulkTransactionNumber]"
+    (close)="closeWindow()"
+    (save)="onSaveBulkTransaction($event)"
+  ></app-bulk-transaction-entry>
+</div>
